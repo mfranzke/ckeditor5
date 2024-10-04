@@ -15,6 +15,7 @@
   "dependencies": {
     "@ckeditor/ckeditor5-core": "43.2.0",
     "@ckeditor/ckeditor5-engine": "43.2.0",
+    "@ckeditor/ckeditor5-heading": "43.2.0",
     "@ckeditor/ckeditor5-typing": "43.2.0",
     "@ckeditor/ckeditor5-utils": "43.2.0",
     "ckeditor5": "43.2.0"
@@ -26,7 +27,6 @@
     "@ckeditor/ckeditor5-dev-utils": "^44.0.0",
     "@ckeditor/ckeditor5-editor-classic": "43.2.0",
     "@ckeditor/ckeditor5-enter": "43.2.0",
-    "@ckeditor/ckeditor5-heading": "43.2.0",
     "@ckeditor/ckeditor5-horizontal-line": "43.2.0",
     "@ckeditor/ckeditor5-list": "43.2.0",
     "@ckeditor/ckeditor5-paragraph": "43.2.0",

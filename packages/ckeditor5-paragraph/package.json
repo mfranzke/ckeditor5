@@ -14,6 +14,7 @@
   "main": "src/index.ts",
   "dependencies": {
     "@ckeditor/ckeditor5-core": "43.2.0",
+    "@ckeditor/ckeditor5-engine": "43.2.0",
     "@ckeditor/ckeditor5-ui": "43.2.0",
     "@ckeditor/ckeditor5-utils": "43.2.0"
   },
@@ -21,7 +22,6 @@
     "@ckeditor/ckeditor5-basic-styles": "43.2.0",
     "@ckeditor/ckeditor5-clipboard": "43.2.0",
     "@ckeditor/ckeditor5-editor-classic": "43.2.0",
-    "@ckeditor/ckeditor5-engine": "43.2.0",
     "@ckeditor/ckeditor5-enter": "43.2.0",
     "@ckeditor/ckeditor5-heading": "43.2.0",
     "@ckeditor/ckeditor5-link": "43.2.0",
