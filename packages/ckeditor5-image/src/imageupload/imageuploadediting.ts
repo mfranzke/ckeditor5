@@ -462,9 +462,8 @@ export default class ImageUploadEditing extends Plugin {
 		const fileRepository = plugins.get( FileRepository );
 		const imageUtils = plugins.get( ImageUtils );
 
-		// Handle copying and pasting images that are not yet fully uploaded.
-		// Gather information about uploading image and store it in the view src attribute.
-		// This way, it'll be possible to paste image to other editor instances and restart the upload there.
+		// Handle copying images that are not yet fully uploaded.
+		// Gather information about uploading image and store its as base64 value in the exported img element src attribute.
 		// See more: https://github.com/ckeditor/ckeditor5/issues/16967
 		conversion.for( 'dataDowncast' ).add( dispatcher => {
 			dispatcher.on<DowncastAttributeEvent>( `attribute:uploadId:${ imageType }`, ( evt, data, conversionApi ) => {
@@ -481,7 +480,8 @@ export default class ImageUploadEditing extends Plugin {
 				const viewElement = conversionApi.mapper.toViewElement( data.item as Element )!;
 				const img = imageUtils.findViewImgElement( viewElement );
 
-				if ( img && !img.hasAttribute( 'src' ) ) {
+				// Let's keep src if it's already set. If it's blank or not set, fill it with loader data.
+				if ( img && !img.getAttribute( 'src' ) ) {
 					conversionApi.writer.setAttribute( 'src', loader.data, img );
 				}
 			} );

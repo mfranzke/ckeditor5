@@ -1552,6 +1552,75 @@ describe( 'ImageUploadEditing', () => {
 		} );
 	} );
 
+	describe( 'data downcast conversion of images with uploading state', () => {
+		it( 'should serialize image in uploading state to base 64', async () => {
+			setModelData( model, '<paragraph>[]foo</paragraph>' );
+
+			const file = createNativeFileMock();
+			editor.execute( 'uploadImage', { file } );
+			loader.file.then( () => nativeReaderMock.mockSuccess( base64Sample ) );
+
+			await timeout( 50 );
+
+			const uploadId = adapterMocks[ 0 ].loader.id;
+
+			expect( getModelData( editor.model ) ).to.be.equal(
+				`<paragraph>[<imageInline uploadId="${ uploadId }" uploadStatus="uploading"></imageInline>]foo</paragraph>`
+			);
+
+			expect( editor.getData() ).to.be.equal(
+				`<p><img src="${ base64Sample }">foo</p>`
+			);
+		} );
+
+		it( 'should not crash if uploadId of down casted image is not found in loaders repository', async () => {
+			setModelData( model, '<paragraph>[]foo</paragraph>' );
+
+			const file = createNativeFileMock();
+			editor.execute( 'uploadImage', { file } );
+			loader.file.then( () => nativeReaderMock.mockSuccess( base64Sample ) );
+
+			await timeout( 50 );
+
+			const uploadId = adapterMocks[ 0 ].loader.id;
+
+			sinon
+				.stub( fileRepository.loaders, 'get' )
+				.withArgs( uploadId )
+				.returns( null );
+
+			expect( getModelData( editor.model ) ).to.be.equal(
+				`<paragraph>[<imageInline uploadId="${ uploadId }" uploadStatus="uploading"></imageInline>]foo</paragraph>`
+			);
+
+			expect( editor.getData() ).to.be.equal( '<p><img>foo</p>' );
+		} );
+
+		it( 'should not downcast consumed uploadId image attribute', async () => {
+			editor.conversion.for( 'downcast' ).add( dispatcher =>
+				dispatcher.on( 'attribute:uploadId:imageInline', ( evt, data, conversionApi ) => {
+					conversionApi.consumable.consume( data.item, 'attribute:uploadId:imageInline' );
+				}, { priority: 'high' } )
+			);
+
+			setModelData( model, '<paragraph>[]foo</paragraph>' );
+
+			const file = createNativeFileMock();
+			editor.execute( 'uploadImage', { file } );
+			loader.file.then( () => nativeReaderMock.mockSuccess( base64Sample ) );
+
+			await timeout( 50 );
+
+			const uploadId = adapterMocks[ 0 ].loader.id;
+
+			expect( getModelData( editor.model ) ).to.be.equal(
+				`<paragraph>[<imageInline uploadId="${ uploadId }" uploadStatus="uploading"></imageInline>]foo</paragraph>`
+			);
+
+			expect( editor.getData() ).to.be.equal( '<p><img>foo</p>' );
+		} );
+	} );
+
 	// Helper for validating clipboard and model data as a result of a paste operation. This function checks both clipboard
 	// data and model data synchronously (`expectedClipboardData`, `expectedModel`) and then the model data after `loader.file`
 	// promise is resolved (so model state after successful/failed file fetch attempt).
