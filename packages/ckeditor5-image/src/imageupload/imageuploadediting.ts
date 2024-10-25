@@ -16,7 +16,8 @@ import {
 	type Writer,
 	type DataTransfer,
 	type ViewElement,
-	type NodeAttributes
+	type NodeAttributes,
+	type DowncastAttributeEvent
 } from 'ckeditor5/src/engine.js';
 
 import { Notification } from 'ckeditor5/src/ui.js';
@@ -274,12 +275,16 @@ export default class ImageUploadEditing extends Plugin {
 			schema.extend( 'imageBlock', {
 				allowAttributes: [ 'uploadId', 'uploadStatus' ]
 			} );
+
+			this._registerConverters( 'imageBlock' );
 		}
 
 		if ( this.editor.plugins.has( 'ImageInlineEditing' ) ) {
 			schema.extend( 'imageInline', {
 				allowAttributes: [ 'uploadId', 'uploadStatus' ]
 			} );
+
+			this._registerConverters( 'imageInline' );
 		}
 	}
 
@@ -444,6 +449,43 @@ export default class ImageUploadEditing extends Plugin {
 
 			writer.setAttributes( attributes, image );
 		}
+	}
+
+	/**
+	 * Registers image upload converters.
+	 *
+	 * @param imageType The type of the image.
+	 */
+	private _registerConverters( imageType: 'imageBlock' | 'imageInline' ) {
+		const { conversion, plugins } = this.editor;
+
+		const fileRepository = plugins.get( FileRepository );
+		const imageUtils = plugins.get( ImageUtils );
+
+		// Handle copying and pasting images that are not yet fully uploaded.
+		// Gather information about uploading image and store it in the view src attribute.
+		// This way, it'll be possible to paste image to other editor instances and restart the upload there.
+		// See more: https://github.com/ckeditor/ckeditor5/issues/16967
+		conversion.for( 'dataDowncast' ).add( dispatcher => {
+			dispatcher.on<DowncastAttributeEvent>( `attribute:uploadId:${ imageType }`, ( evt, data, conversionApi ) => {
+				if ( !conversionApi.consumable.consume( data.item, evt.name ) ) {
+					return;
+				}
+
+				const loader = fileRepository.loaders.get( data.attributeNewValue as string );
+
+				if ( !loader || !loader.data ) {
+					return null;
+				}
+
+				const viewElement = conversionApi.mapper.toViewElement( data.item as Element )!;
+				const img = imageUtils.findViewImgElement( viewElement );
+
+				if ( img && !img.hasAttribute( 'src' ) ) {
+					conversionApi.writer.setAttribute( 'src', loader.data, img );
+				}
+			} );
+		} );
 	}
 }
 
