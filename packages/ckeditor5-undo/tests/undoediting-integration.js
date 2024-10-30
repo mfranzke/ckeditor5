@@ -85,6 +85,33 @@ describe( 'UndoEditing integration', () => {
 			undoDisabled();
 		} );
 
+		it( 'undoing content inserted inside a paragraph', () => {
+			input( '<paragraph>[]Some text to work with. A sentence to replace. More text to work with</paragraph>' );
+			const viewFrag1 = editor.data.processor.toView( '<p>First text change.&nbsp;</p>' );
+			const viewFrag2 = editor.data.processor.toView( '<p>Second text change.&nbsp;</p>' );
+			const modelFrag1 = editor.data.toModel( viewFrag1 );
+			const modelFrag2 = editor.data.toModel( viewFrag2 );
+			model.change( writer => {
+				const range = writer.createRange(
+					writer.createPositionFromPath( root, [ 0, 'Some text to work with. '.length ] ),
+					writer.createPositionFromPath( root, [ 0, 'Some text to work with. A sentence to replace. '.length ] )
+				);
+				model.insertContent( modelFrag1, range );
+			} );
+			model.change( writer => {
+				const range = writer.createRange(
+					writer.createPositionFromPath( root, [ 0, 'Some text to work with. '.length ] ),
+					writer.createPositionFromPath( root, [ 0, 'Some text to work with. First text change. '.length ] )
+				);
+				model.insertContent( modelFrag2, range );
+			} );
+			output( '<paragraph>[]Some text to work with. Second text change. More text to work with</paragraph>' );
+			editor.execute( 'undo' );
+			output( '<paragraph>[]Some text to work with. First text change. More text to work with</paragraph>' );
+			editor.execute( 'undo' );
+			output( '<paragraph>[]Some text to work with. A sentence to replace. More text to work with</paragraph>' );
+		} );
+
 		it( 'multiple adding and undo', () => {
 			input( '<paragraph>fo[]o</paragraph><paragraph>bar</paragraph>' );
 
